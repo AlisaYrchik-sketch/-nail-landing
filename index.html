@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подбор маникюра — Nail Studio</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  
+  body {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
+    color: #4a1d3f;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(90deg, #be185d, #9333ea, #db2777);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+    animation: fadeUp 0.8s ease;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: #6b21a8;
+    max-width: 600px;
+    margin: 0 auto 30px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+  .sparkle {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+    opacity: 0.7;
+  }
+
+  /* ---------- QUIZ ---------- */
+  .quiz-container {
+    max-width: 750px;
+    margin: 0 auto 60px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 28px;
+    padding: 40px 30px;
+    box-shadow: 0 20px 50px rgba(190, 24, 93, 0.15);
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #fbcfe8;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #db2777, #9333ea);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+  .step { display: none; animation: fadeIn 0.4s ease; }
+  .step.active { display: block; }
+  .step h2 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    color: #831843;
+  }
+  .options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  .option {
+    background: #fff;
+    border: 2px solid #fbcfe8;
+    border-radius: 18px;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #831843;
+    user-select: none;
+  }
+  .option .emoji { display: block; font-size: 2rem; margin-bottom: 8px; }
+  .option:hover {
+    transform: translateY(-4px);
+    border-color: #db2777;
+    box-shadow: 0 10px 25px rgba(219, 39, 119, 0.25);
+  }
+  .option.selected {
+    background: linear-gradient(135deg, #db2777, #9333ea);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 10px 25px rgba(147, 51, 234, 0.4);
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 15px;
+  }
+  .btn {
+    border: none;
+    border-radius: 50px;
+    padding: 14px 35px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .btn-back {
+    background: #fce7f3;
+    color: #831843;
+  }
+  .btn-back:hover { background: #fbcfe8; }
+  .btn-next {
+    background: linear-gradient(135deg, #db2777, #9333ea);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(219, 39, 119, 0.35);
+  }
+  .btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(219, 39, 119, 0.45);
+  }
+  .btn-next:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ---------- RESULT ---------- */
+  #result { display: none; text-align: center; }
+  #result.active { display: block; }
+  .result-card {
+    background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%);
+    border-radius: 24px;
+    padding: 35px 25px;
+    margin-top: 20px;
+    border: 2px solid #fbcfe8;
+  }
+  .result-card .big-emoji {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    animation: pop 0.6s ease;
+  }
+  .result-card h3 {
+    font-size: 1.6rem;
+    color: #be185d;
+    margin-bottom: 12px;
+  }
+  .result-card p {
+    color: #6b21a8;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .tag {
+    background: #fce7f3;
+    color: #be185d;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .btn-book {
+    margin-top: 25px;
+    background: linear-gradient(135deg, #db2777, #9333ea);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 45px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 28px rgba(147, 51, 234, 0.4);
+    transition: all 0.25s ease;
+  }
+  .btn-book:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 14px 35px rgba(147, 51, 234, 0.55);
+  }
+  .btn-restart {
+    background: transparent;
+    color: #9333ea;
+    border: none;
+    margin-top: 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+  }
+
+  /* ---------- FEATURES ---------- */
+  .features {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .feature {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 25px 20px;
+    text-align: center;
+    border: 1px solid #fbcfe8;
+  }
+  .feature .f-emoji { font-size: 2.2rem; margin-bottom: 10px; display: block; }
+  .feature h4 { color: #831843; margin-bottom: 8px; }
+  .feature p { font-size: 0.9rem; color: #6b21a8; line-height: 1.5; }
+
+  footer {
+    text-align: center;
+    padding: 25px;
+    color: #9d174d;
+    font-size: 0.9rem;
+  }
+
+  /* ---------- ANIMATIONS ---------- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(15px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-15px) rotate(10deg); }
+  }
+
+  @media (max-width: 480px) {
+    .quiz-container { padding: 25px 18px; margin: 0 12px 40px; }
+    .option { padding: 15px 10px; font-size: 0.9rem; }
+    .option .emoji { font-size: 1.6rem; }
+    .nav-buttons { flex-direction: column-reverse; }
+    .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="sparkle" style="top:20px;left:10%;">✨</span>
+  <span class="sparkle" style="top:80px;right:12%;animation-delay:1s;">💅</span>
+  <span class="sparkle" style="top:150px;left:20%;animation-delay:2s;">💖</span>
+  <h1>Найди свой идеальный маникюр</h1>
+  <p>Ответь на 4 простых вопроса — и мы подберём стиль, который подчеркнёт твою индивидуальность 💅</p>
+</header>
+
+<!-- QUIZ -->
+<main class="quiz-container">
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <div id="quiz">
+    <!-- STEP 1 -->
+    <div class="step active" data-step="0">
+      <h2>1. Какой у тебя стиль в одежде?</h2>
+      <div class="options">
+        <div class="option" data-value="minimal"><span class="emoji">🤍</span>Минимализм</div>
+        <div class="option" data-value="glamour"><span class="emoji">✨</span>Гламур</div>
+        <div class="option" data-value="casual"><span class="emoji">👟</span>Кэжуал</div>
+        <div class="option" data-value="bold"><span class="emoji">🖤</span>Смелый / гранж</div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" data-step="1">
+      <h2>2. Какая длина ногтей тебе ближе?</h2>
+      <div class="options">
+        <div class="option" data-value="short"><span class="emoji">🌸</span>Короткая</div>
+        <div class="option" data-value="medium"><span class="emoji">💅</span>Средняя</div>
+        <div class="option" data-value="long"><span class="emoji">👑</span>Длинная</div>
+        <div class="option" data-value="any"><span class="emoji">🤷‍♀️</span>Не важно</div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" data-step="2">
+      <h2>3. Какой цвет тебе нравится?</h2>
+      <div class="options">
+        <div class="option" data-value="nude"><span class="emoji">🍑</span>Нюд / пастель</div>
+        <div class="option" data-value="red"><span class="emoji">❤️</span>Красный / бордо</div>
+        <div class="option" data-value="dark"><span class="emoji">🖤</span>Тёмный / чёрный</div>
+        <div class="option" data-value="pastel"><span class="emoji">🦋</span>Яркий / неон</div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" data-step="3">
+      <h2>4. Для какого случая маникюр?</h2>
+      <div class="options">
+        <div class="option" data-value="daily"><span class="emoji">☕</span>На каждый день</div>
+        <div class="option" data-value="party"><span class="emoji">🎉</span>Вечеринка</div>
+        <div class="option" data-value="wedding"><span class="emoji">💍</span>Свадьба / торжество</div>
+        <div class="option" data-value="office"><span class="emoji">💼</span>Офис / работа</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result">
+    <div class="result-card">
+      <div class="big-emoji" id="res-emoji">💅</div>
+      <h3 id="res-title">Твой стиль</h3>
+      <p id="res-desc"></p>
+      <div class="tags" id="res-tags"></div>
+      <button class="btn-book" onclick="alert('Запись на маникюр 💅\nЗдесь будет ссылка на форму записи или WhatsApp.')">Записаться на маникюр</button>
+      <br>
+      <button class="btn-restart" onclick="restartQuiz()">Пройти заново 🔄</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav-buttons" id="nav">
+    <button class="btn btn-back" id="backBtn" onclick="prevStep()" style="visibility:hidden;">Назад</button>
+    <button class="btn btn-next" id="nextBtn" onclick="nextStep()" disabled>Далее →</button>
+  </div>
+</main>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="feature">
+    <span class="f-emoji">🎨</span>
+    <h4>Индивидуальный подход</h4>
+    <p>Подбираем дизайн под твой образ жизни и вкус.</p>
+  </div>
+  <div class="feature">
+    <span class="f-emoji">💎</span>
+    <h4>Премиум материалы</h4>
+    <p>Только качественные покрытия и безопасные инструменты.</p>
+  </div>
+  <div class="feature">
+    <span class="f-emoji">⏱️</span>
+    <h4>Быстро и аккуратно</h4>
+    <p>Маникюр за 1,5 часа без спешки и нервов.</p>
+  </div>
+</section>
+
+<footer>© 2025 Nail Studio. Сделано с любовью к красоте 💖</footer>
+
+<script>
+  // ---------- ДАННЫЕ ----------
+  const totalSteps = 4;
+  const answers = {};
+  let currentStep = 0;
+
+  const results = {
+    // комбинации: стиль + случай + цвет
+    default: {
+      emoji: '💅',
+      title: 'Классический маникюр',
+      desc: 'Универсальный вариант, который подойдёт всегда. Аккуратная форма, нюдовое или пастельное покрытие — база, которая украсит любые руки.',
+      tags: ['Классика', 'Нюд', 'Аккуратно']
+    }
+  };
+
+  // Логика подбора
+  function getResult() {
+    const { style, length, color, occasion } = answers;
+
+    // Смелые / гранж
+    if (style === 'bold' || color === 'dark') {
+      return {
+        emoji: '🖤',
+        title: 'Гранж / Смелый дизайн',
+        desc: 'Тебе идёт контраст и характер! Попробуй матовое покрытие, чёрный или тёмный цвет, металлические акценты, рваный френч или абстрактные линии.',
+        tags: ['Матовый', 'Чёрный', 'Дизайн', 'Геометрия']
+      };
+    }
+    // Гламур / свадьба / вечеринка
+    if (style === 'glamour' || occasion === 'wedding' || occasion === 'party') {
+      return {
+        emoji: '✨',
+        title: 'Гламурный маникюр',
+        desc: 'Время сиять! Блеск, стразы, зеркальные втирки, градиенты и мягкие оттенки розы. Идеально для особых событий и настроения "я звезда".',
+        tags: ['Блеск', 'Стразы', 'Градиент', 'Розовый']
+      };
+    }
+    // Минимализм / офис
+    if (style === 'minimal' || occasion === 'office') {
+      return {
+        emoji: '🤍',
+        title: 'Минимализм',
+        desc: 'Тонкая эстетика: прозрачный или молочный базовый слой, тонкие линии, маленькие точки-акценты. Сдержанно, стильно и очень "дорого".',
+        tags: ['Прозрачный', 'Тонкие линии', 'Молочный', 'Сдержанно']
+      };
+    }
+    // Кэжуал / ежедневный
+    if (style === 'casual' || occasion === 'daily') {
+      return {
+        emoji: '☕',
+        title: 'Комфортный нюд',
+        desc: 'Практичный маникюр на каждый день: короткая или средняя длина, нюдовые и пастельные оттенки, лёгкий акцент на одном ногте.',
+        tags: ['Нюд', 'Пастель', 'Комфорт', 'Практично']
+      };
+    }
+    return results.default;
+  }
+
+  // ---------- НАВИГАЦИЯ ----------
+  const steps = document.querySelectorAll('.step');
+  const progress = document.getElementById('progress');
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+  const nav = document.getElementById('nav');
+  const quizEl = document.getElementById('quiz');
+  const resultEl = document.getElementById('result');
+
+  document.querySelectorAll('.option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const stepEl = opt.closest('.step');
+      const stepIndex = +stepEl.dataset.step;
+      stepEl.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[stepIndex] = opt.dataset.value;
+      nextBtn.disabled = false;
+    });
+  });
+
+  function updateUI() {
+    steps.forEach(s => s.classList.remove('active'));
+    steps[currentStep].classList.add('active');
+    progress.style.width = ((currentStep) / totalSteps * 100) + '%';
+
+    backBtn.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+    nextBtn.textContent = currentStep === totalSteps - 1 ? 'Показать результат ✨' : 'Далее →';
+    
+    // если ответ уже выбран — активная кнопка
+    const selected = steps[currentStep].querySelector('.option.selected');
+    nextBtn.disabled = !selected;
+  }
+
+  function nextStep() {
+    if (currentStep < totalSteps - 1) {
+      currentStep++;
+      updateUI();
+    } else {
+      showResult();
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      updateUI();
+    }
+  }
+
+  function showResult() {
+    const res = getResult();
+    document.getElementById('res-emoji').textContent = res.emoji;
+    document.getElementById('res-title').textContent = res.title;
+    document.getElementById('res-desc').textContent = res.desc;
+    
+    const tagsContainer = document.getElementById('res-tags');
+    tagsContainer.innerHTML = '';
+    res.tags.forEach(tag => {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.textContent = tag;
+      tagsContainer.appendChild(span);
+    });
+
+    quizEl.style.display = 'none';
+    nav.style.display = 'none';
+    document.querySelector('.progress-bar').style.display = 'none';
+    resultEl.classList.add('active');
+    document.querySelector('.quiz-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function restartQuiz() {
+    currentStep = 0;
+    Object.keys(answers).forEach(k => delete answers[k]);
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    steps[0].classList.add('active');
+    
+    quizEl.style.display = 'block';
+    nav.style.display = 'flex';
+    document.querySelector('.progress-bar').style.display = 'block';
+    resultEl.classList.remove('active');
+    
+    nextBtn.disabled = true;
+    progress.style.width = '0%';
+    updateUI();
+    document.querySelector('.quiz-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // клавиатура
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !nextBtn.disabled) nextStep();
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
